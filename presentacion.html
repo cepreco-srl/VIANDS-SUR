@@ -401,8 +401,6 @@
 
         // --- LÓGICA DE INTELIGENCIA ARTIFICIAL GEMINI ---
         
-        const apiKey = "AIzaSyBVXbKc4IdSEVrClbGK7XYLfQCFQJflL5A"; 
-        
         async function generateMenuWithAI() {
             const btn = document.getElementById('generate-btn');
             const output = document.getElementById('ai-output');
@@ -411,71 +409,61 @@
             const style = document.getElementById('ai-style').value;
             const diet = document.getElementById('ai-diet').value;
 
+            // Estado de carga
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando menú...';
             btn.classList.add('opacity-70', 'cursor-not-allowed');
             output.innerHTML = '<div class="h-full flex flex-col items-center justify-center text-[#F57C00]"><i class="fas fa-spinner fa-spin text-5xl mb-4"></i><p class="text-gray-600 font-semibold">El Chef de Viands Sur está diseñando el menú...</p></div>';
 
-            // SOLUCIÓN: Agrupamos todo en un solo texto para que ningún servidor rechace la petición.
-            const fullPrompt = `INSTRUCCIÓN DE COMPORTAMIENTO: Actúa como el chef ejecutivo experto de 'Viands Sur', una empresa de catering corporativo en Argentina (CABA/AMBA). Diseña un menú de forma profesional, tentadora y estructurada.\n\nTAREA: Crea un menú semanal (Lunes a Viernes) de viandas corporativas para una empresa de ${emp}. Estilo de comida principal: ${style}. Debe incluir también la opción de dieta especial: ${diet}. Sé conciso, profesional y apetitoso. Devuelve solo el menú organizado día por día en formato texto claro (sin introducciones largas ni markdown de código). Usa emojis de comida sutiles para decorar.`;
+            // 1. TU CLAVE EXACTA
+            const apiKey = "AIzaSyBVXbKc4IdSEVrClbGK7XYLfQCFQJflL5A"; 
+            
+            // 2. RUTA OFICIAL AL MODELO CORRECTO
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
-            // Matriz de endpoints a intentar, ahora sin usar "systemInstruction" para asegurar 100% de compatibilidad
-            const endpointsToTry = [
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-                `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`
-            ];
+            // 3. INSTRUCCIONES UNIFICADAS (Evita errores de "systemInstruction" o compatibilidad)
+            const fullPrompt = `Actúa como el chef ejecutivo experto de 'Viands Sur', una empresa de catering corporativo en Argentina (CABA/AMBA). Diseña un menú de forma profesional, tentadora y estructurada.\n\nCrea un menú semanal (Lunes a Viernes) de viandas corporativas para una empresa de ${emp}. Estilo de comida principal: ${style}. Debe incluir también la opción de dieta especial: ${diet}. Sé conciso, profesional y apetitoso. Devuelve solo el menú organizado día por día en formato texto claro (sin introducciones largas ni markdown de código). Usa emojis de comida sutiles para decorar.`;
 
-            const payload = {
-                contents: [{ parts: [{ text: fullPrompt }] }]
-            };
-
-            let success = false;
-            let lastErrorMsg = "";
-
-            for (const url of endpointsToTry) {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    if (!response.ok) {
-                        const errorDetails = await response.json();
-                        throw new Error(errorDetails.error?.message || `Código HTTP: ${response.status}`);
-                    }
-                    
-                    const data = await response.json();
-                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                    
-                    if (text) {
-                        output.innerHTML = `<div class="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm md:text-base">${text}</div>`;
-                        success = true;
-                        break; 
-                    } else {
-                        throw new Error("Respuesta vacía de la API.");
-                    }
-                } catch (error) {
-                    console.warn(`Falló el endpoint ${url}:`, error.message);
-                    lastErrorMsg = error.message;
+            try {
+                // Petición simple y directa
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: fullPrompt }] }]
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorDetails = await response.json();
+                    throw new Error(errorDetails.error?.message || `Error del servidor: ${response.status}`);
                 }
-            }
+                
+                const data = await response.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (text) {
+                    output.innerHTML = `<div class="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm md:text-base">${text}</div>`;
+                } else {
+                    throw new Error("La IA no devolvió ningún texto.");
+                }
 
-            if (!success) {
+            } catch (error) {
+                console.error("Detalle del error:", error);
                 output.innerHTML = `
                     <div class="h-full flex flex-col items-center justify-center text-red-500 text-center px-4 w-full">
                         <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
                         <p class="font-bold">Error de conexión</p>
-                        <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded text-xs text-red-700 font-mono w-full break-words text-left">
-                            <strong>Detalle técnico para solucionar:</strong><br> ${lastErrorMsg}
+                        <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded text-xs text-red-700 font-mono w-full break-words text-left overflow-auto max-h-32">
+                            <strong>Detalle exacto:</strong><br> ${error.message}
                         </div>
                     </div>`;
+            } finally {
+                // Restaurar botón
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-utensils"></i> ✨ Generar Prueba';
+                btn.classList.remove('opacity-70', 'cursor-not-allowed');
             }
-
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-utensils"></i> ✨ Generar Prueba';
-            btn.classList.remove('opacity-70', 'cursor-not-allowed');
         }
     </script>
 </body>
