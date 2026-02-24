@@ -414,40 +414,17 @@
             btn.classList.add('opacity-70', 'cursor-not-allowed');
             output.innerHTML = '<div class="h-full flex flex-col items-center justify-center text-[#F57C00]"><i class="fas fa-spinner fa-spin text-5xl mb-4"></i><p class="text-gray-600 font-semibold">El Chef de Viands Sur está diseñando el menú...</p></div>';
 
-            // 1. TU CLAVE EXACTA
-            const apiKey = "AIzaSyBVXbKc4IdSEVrClbGK7XYLfQCFQJflL5A"; 
+            // 1. ¡IMPORTANTE! PEGA AQUÍ TU "NUEVA" CLAVE GENERADA HOY:
+            const apiKey = "PEGA_TU_NUEVA_CLAVE_AQUI"; 
             
-            // 2. INSTRUCCIONES SIN CAMPOS ESPECIALES PARA EVITAR RECHAZOS
+            // 2. INSTRUCCIONES DEL PROMPT
             const fullPrompt = `INSTRUCCIÓN: Actúa como el chef ejecutivo experto de 'Viands Sur', una empresa de catering corporativo en Argentina (CABA/AMBA). Diseña un menú de forma profesional, tentadora y estructurada.\n\nTAREA: Crea un menú semanal (Lunes a Viernes) de viandas corporativas para una empresa de ${emp}. Estilo de comida principal: ${style}. Debe incluir también la opción de dieta especial: ${diet}. Sé conciso, profesional y apetitoso. Devuelve solo el menú organizado día por día en formato texto claro (sin introducciones largas ni markdown de código). Usa emojis de comida sutiles para decorar.`;
 
             try {
-                // PASO 1: LE PREGUNTAMOS A GOOGLE QUÉ MODELOS TIENES HABILITADOS
-                const checkUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
-                const checkRes = await fetch(checkUrl);
-                
-                if (!checkRes.ok) {
-                    throw new Error(`La API Key parece ser inválida o no tiene permisos. HTTP ${checkRes.status}`);
-                }
-                
-                const checkData = await checkRes.json();
-                
-                // PASO 2: ELEGIMOS EL MEJOR MODELO QUE GOOGLE NOS DIGA QUE SÍ EXISTE EN TU CUENTA
-                const available = checkData.models.filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent"));
-                
-                // Buscamos 1.5-flash primero, luego pro, luego cualquiera que funcione.
-                let bestModel = available.find(m => m.name.includes("gemini-1.5-flash")) || 
-                                available.find(m => m.name.includes("gemini-1.5-pro")) || 
-                                available.find(m => m.name.includes("gemini")) || 
-                                available[0];
+                // 3. LLAMADA DIRECTA AL MODELO PRINCIPAL
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
-                if (!bestModel) {
-                    throw new Error("Tu cuenta de Google no tiene ningún modelo compatible habilitado.");
-                }
-
-                // PASO 3: HACEMOS LA PETICIÓN EXACTA AL MODELO DESCUBIERTO
-                const generateUrl = `https://generativelanguage.googleapis.com/v1beta/${bestModel.name}:generateContent?key=${apiKey}`;
-
-                const response = await fetch(generateUrl, {
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -457,7 +434,7 @@
                 
                 if (!response.ok) {
                     const errorDetails = await response.json();
-                    throw new Error(errorDetails.error?.message || `Error del servidor al generar: ${response.status}`);
+                    throw new Error(errorDetails.error?.message || `HTTP ${response.status}`);
                 }
                 
                 const data = await response.json();
@@ -471,12 +448,19 @@
 
             } catch (error) {
                 console.error("Detalle del error:", error);
+                
+                // Mensaje personalizado para detectar si vuelve a pasar el error 403
+                let errorMensaje = error.message;
+                if (errorMensaje.includes("403") || errorMensaje.includes("API key not valid")) {
+                    errorMensaje = "Google bloqueó tu clave de API (Probablemente por estar pública en GitHub). Genera una nueva clave y vuelve a insertarla.";
+                }
+
                 output.innerHTML = `
                     <div class="h-full flex flex-col items-center justify-center text-red-500 text-center px-4 w-full">
                         <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
                         <p class="font-bold">Error de conexión</p>
                         <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded text-xs text-red-700 font-mono w-full break-words text-left overflow-auto max-h-32">
-                            <strong>Detalle exacto:</strong><br> ${error.message}
+                            <strong>Detalle:</strong><br> ${errorMensaje}
                         </div>
                     </div>`;
             } finally {
