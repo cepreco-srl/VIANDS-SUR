@@ -401,6 +401,7 @@
 
         // --- LÓGICA DE INTELIGENCIA ARTIFICIAL GEMINI ---
         
+        // ¡LA CLAVE ESTÁ AQUÍ LISTA PARA QUE FUNCIONE EN GITHUB!
         const apiKey = "AIzaSyBVXbKc4IdSEVrClbGK7XYLfQCFQJflL5A"; 
         
         async function generateMenuWithAI() {
@@ -416,58 +417,52 @@
             btn.classList.add('opacity-70', 'cursor-not-allowed');
             output.innerHTML = '<div class="h-full flex flex-col items-center justify-center text-[#F57C00]"><i class="fas fa-spinner fa-spin text-5xl mb-4"></i><p class="text-gray-600 font-semibold">El Chef de Viands Sur está diseñando el menú...</p></div>';
 
-            // Unificamos las instrucciones dentro del texto normal para máxima compatibilidad entre modelos.
-            const fullPrompt = `Actúa como el chef ejecutivo experto de 'Viands Sur', una empresa de catering corporativo en Argentina (CABA/AMBA). Diseña un menú de forma profesional, tentadora y estructurada.\n\nCrea un menú semanal (Lunes a Viernes) de viandas corporativas para una empresa de ${emp}. Estilo de comida principal: ${style}. Debe incluir también la opción de dieta especial: ${diet}. Sé conciso, profesional y apetitoso. Devuelve solo el menú organizado día por día en formato texto claro (sin introducciones largas ni markdown de código). Usa emojis de comida sutiles para decorar.`;
+            const prompt = `Crea un menú semanal (Lunes a Viernes) de viandas corporativas para una empresa de ${emp}. Estilo de comida principal: ${style}. Debe incluir también la opción de dieta especial: ${diet}. Sé conciso, profesional y apetitoso. Devuelve solo el menú organizado día por día en formato texto claro (sin introducciones largas ni markdown de código). Usa emojis de comida sutiles para decorar.`;
 
-            // Matriz de endpoints: Probamos desde el más robusto (v1) hasta el de respaldo (gemini-pro).
-            const endpointsToTry = [
-                `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-                `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`
-            ];
+            // AQUÍ USAMOS LA VERSIÓN OFICIAL "v1" CON EL MODELO "gemini-1.5-flash"
+            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: "Eres el chef ejecutivo experto de 'Viands Sur', una empresa de catering corporativo en Argentina (CABA/AMBA). Respondes diseñando menús de forma profesional, tentadora y estructurada." }] }
+            };
 
             let success = false;
-            let lastErrorMsg = "";
+            let lastError = null;
 
-            for (const url of endpointsToTry) {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: fullPrompt }] }]
-                        })
-                    });
-                    
-                    if (!response.ok) {
-                        const errorDetails = await response.json();
-                        throw new Error(errorDetails.error?.message || `Código HTTP: ${response.status}`);
-                    }
-                    
-                    const data = await response.json();
-                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                    
-                    if (text) {
-                        output.innerHTML = `<div class="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm md:text-base">${text}</div>`;
-                        success = true;
-                        break; // Si logramos generar el menú, salimos del bucle.
-                    } else {
-                        throw new Error("Respuesta vacía de la API.");
-                    }
-                } catch (error) {
-                    console.warn(`Falló el endpoint ${url}:`, error.message);
-                    lastErrorMsg = error.message;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    const errorDetails = await response.json();
+                    throw new Error(errorDetails.error?.message || `Error de conexión HTTP: ${response.status}`);
                 }
+                
+                const data = await response.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (text) {
+                    output.innerHTML = `<div class="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm md:text-base">${text}</div>`;
+                    success = true;
+                } else {
+                    throw new Error("Respuesta vacía de la API.");
+                }
+            } catch (error) {
+                lastError = error;
+                console.error("Detalle del error:", lastError);
             }
 
-            // Si después de probar las 3 opciones sigue fallando, mostramos el error.
             if (!success) {
                 output.innerHTML = `
                     <div class="h-full flex flex-col items-center justify-center text-red-500 text-center px-4 w-full">
                         <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
                         <p class="font-bold">Error de conexión</p>
                         <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded text-xs text-red-700 font-mono w-full break-words text-left">
-                            <strong>Detalle técnico para solucionar:</strong><br> ${lastErrorMsg}
+                            <strong>Detalle técnico:</strong><br> ${lastError.message}
                         </div>
                     </div>`;
             }
