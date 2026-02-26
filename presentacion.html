@@ -351,7 +351,7 @@
                             <select id="ai-style" class="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F57C00] outline-none bg-white">
                                 <option selected>Casero / Tradicional</option>
                                 <option>Saludable / Light</option>
-                                <option>Gourmet / Premium</option>
+                                
                                 <option>Internacional / Variado</option>
                             </select>
                         </div>
@@ -501,7 +501,7 @@ updateSlider();
 
 
 // ── AI MENU GENERATOR ─────────────────────────────────────────────────────────
-async function generateMenu() {
+function generateMenu() {
     const btn = document.getElementById('generate-btn');
     const output = document.getElementById('ai-output');
 
@@ -522,77 +522,266 @@ async function generateMenu() {
             <p class="text-xs text-gray-400">El chef está diseñando el menú...</p>
         </div>`;
 
-    const prompt = `Eres el chef ejecutivo de "Viands Sur", empresa de catering corporativo en Argentina (CABA/AMBA).
-
-Crea un menú semanal (Lunes a Viernes) para una empresa de ${emp}.
-Estilo: ${style}.
-Incluí opción de dieta especial: ${diet} en cada día.
-
-Formato exacto que debés usar (sin markdown, sin asteriscos, texto plano limpio):
-
-📅 LUNES
-• Menú principal: [plato]
-• Opción ${diet}: [plato]
-• Guarnición: [guarnición]
-• Postre: [postre]
-
-Repetí el formato para MARTES, MIÉRCOLES, JUEVES y VIERNES.
-Al final agregá una nota breve sobre el servicio Viands Sur.
-Sé conciso, apetitoso y profesional.`;
-
-    try {
-        const apiKey = "AIzaSyBnu-wcPsgShsz4eQ1LUHhlfWEU9cywmag";
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-        const response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
-            })
-        });
-
-        if (!response.ok) {
-            const err = await response.json();
-            throw new Error(err.error?.message || `Error ${response.status}`);
-        }
-
-        const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        if (text) {
-            // Render with nice formatting
-            const formatted = text
-                .replace(/📅 (LUNES|MARTES|MIÉRCOLES|JUEVES|VIERNES)/g,
-                    '<div class="mt-4 mb-1 font-montserrat font-bold text-[#F57C00] text-sm tracking-wide">📅 $1</div>')
-                .replace(/• /g, '<span class="text-[#F57C00]">•</span> ');
-
-            output.innerHTML = `<div class="ai-text text-xs leading-relaxed">${formatted}</div>`;
-        } else {
-            throw new Error("No se recibió respuesta de la IA.");
-        }
-
-    } catch (err) {
-        output.innerHTML = `
-            <div class="h-full flex flex-col items-center justify-center text-center px-4">
-                <i class="fas fa-exclamation-circle text-red-400 text-3xl mb-2"></i>
-                <p class="text-red-500 font-bold text-sm mb-2">Error al generar el menú</p>
-                <p class="text-xs text-gray-400 max-w-xs">${err.message}</p>
-            </div>`;
-    } finally {
+    setTimeout(() => {
+        const menus = buildMenu(emp, style, diet);
+        const html = renderMenu(menus, diet);
+        output.innerHTML = html;
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-utensils"></i> ✨ Generar Menú';
-    }
+    }, 1500);
+}
+
+function pick(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function buildMenu(emp, style, diet) {
+    const dias = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'];
+
+    const platos = {
+        'Casero / Tradicional': {
+            principales: [
+                'Milanesa de ternera con papas al horno',
+                'Pollo al horno con verduras asadas',
+                'Tapa de asado con ensalada mixta',
+                'Peceto a la mostaza con puré',
+                'Carbonada criolla con arroz blanco',
+                'Suprema de pollo rellena con papas noisette',
+                'Bife de chorizo con papas salteadas',
+                'Guiso de lentejas con chorizo colorado',
+                'Lomo saltado con arroz y huevo',
+                'Matambre a la pizza con ensalada',
+                'Pollo en salsa portuguesa con fideos',
+                'Estofado de ternera con papas y zanahorias',
+                'Cazuela de pollo con verduras de estación',
+                'Milanesa de pollo con puré de zapallo',
+                'Puchero de gallina con vegetales',
+                'Osobuco a la criolla con polenta',
+                'Albóndigas en salsa de tomate con fideos',
+                'Pollo a la portuguesa con arroz blanco',
+                'Carne al horno con papas doradas',
+                'Guiso de mondongo con chorizo y papa'
+            ],
+            guarniciones: [
+                'Puré de papas casero',
+                'Arroz blanco con perejil',
+                'Ensalada mixta con tomate y zanahoria',
+                'Papas al horno con romero',
+                'Fideos con manteca y queso',
+                'Verduras salteadas al wok',
+                'Polenta cremosa',
+                'Papa cocida con oliva',
+                'Arroz yamaní',
+                'Batatas al horno',
+                'Puré de zapallo con manteca',
+                'Fideos al tuco casero',
+                'Ensalada de papa y huevo duro',
+                'Arroz con arvejas y zanahoria',
+                'Choclo desgranado salteado con morrón',
+                'Ensalada de remolacha con queso fresco',
+                'Garbanzos salteados con pimentón',
+                'Zanahorias glaseadas con miel',
+                'Mix de verduras grilladas con oliva',
+                'Papas bravas con mayonesa casera'
+            ],
+            postres: [
+                'Flan casero con dulce de leche',
+                'Budín de pan con crema',
+                'Ensalada de frutas frescas',
+                'Arroz con leche',
+                'Fruta de estación',
+                'Alfajor de maicena',
+                'Gelatina con crema',
+                'Mousse de chocolate',
+                'Torta de naranja',
+                'Yogur con granola',
+                'Torta de manzana casera',
+                'Brownie de chocolate con nueces',
+                'Budín de vainilla con pasas',
+                'Postre vigilante con dulce de membrillo',
+                'Compota de frutas de estación',
+                'Pionono relleno de dulce de leche',
+                'Chocotorta individual',
+                'Medialunas de manteca',
+                'Torta rogel casera',
+                'Peras al vino con canela'
+            ]
+        },
+        'Saludable / Light': {
+            principales: [
+                'Pechuga de pollo grillada con quinoa',
+                'Salmón al vapor con vegetales',
+                'Bowl de atún con arroz integral y palta',
+                'Wraps de pollo con lechuga y tomate',
+                'Filete de merluza al horno con limón',
+                'Ensalada César con pollo grillado',
+                'Pollo al limón con brócoli al vapor',
+                'Tartare de vegetales con tofu grillado',
+                'Medallones de pavo con vegetales',
+                'Pechuga rellena de espinaca con batata'
+            ],
+            guarniciones: [
+                'Quinoa con vegetales al vapor',
+                'Ensalada verde con semillas',
+                'Arroz integral con cúrcuma',
+                'Brócoli y zanahoria al vapor',
+                'Tabulé de coliflor',
+                'Espinaca salteada con ajo',
+                'Batata asada con oliva',
+                'Mix de hojas verdes con aliño',
+                'Zucchini grillado',
+                'Remolacha y pepino con limón'
+            ],
+            postres: [
+                'Fruta de estación con miel',
+                'Yogur griego con frutas rojas',
+                'Ensalada de frutas con menta',
+                'Chia pudding con mango',
+                'Banana con mantequilla de maní',
+                'Pera al horno con canela',
+                'Granola con leche vegetal',
+                'Frutos rojos con crema de coco',
+                'Naranja con jengibre',
+                'Manzana con dip de almendras'
+            ]
+        },
+        'Internacional / Variado': {
+            principales: [
+                'Pollo tikka masala con arroz basmati',
+                'Pasta carbonara con panceta y parmesano',
+                'Tacos de carne al pastor con guacamole',
+                'Curry de garbanzos y espinaca con naan',
+                'Pad thai de pollo con maní',
+                'Moussaka griega con ensalada',
+                'Gyozas de cerdo con salsa ponzu',
+                'Shawarma de pollo con tzatziki',
+                'Lasagna bolognesa al horno',
+                'Sushi bowl con salmón y palta'
+            ],
+            guarniciones: [
+                'Arroz basmati con cardamomo',
+                'Pan pita tostado con hummus',
+                'Ensalada griega con feta',
+                'Wok de vegetales con salsa de soja',
+                'Tortillas de maíz',
+                'Cuscús con vegetales asados',
+                'Kimchi casero',
+                'Tzatziki con pepino',
+                'Edamame con sal marina',
+                'Papas fritas al horno con especias'
+            ],
+            postres: [
+                'Baklava de nueces con miel',
+                'Mochi de frutilla',
+                'Churros con chocolate caliente',
+                'Cheesecake de vainilla neoyorquino',
+                'Gulab jamun con almíbar',
+                'Helado de matcha',
+                'Cannoli siciliano',
+                'Brownie húmedo con nueces',
+                'Crepe suzette con naranja',
+                'Dorayaki de dulce de leche'
+            ]
+        }
+    };
+
+    const vegetarianos = {
+        'Vegetariano': [
+            'Milanesa de berenjena a la napolitana',
+            'Tortilla de verduras con queso',
+            'Tarta de zapallitos y ricota',
+            'Burger de lentejas con vegetales',
+            'Gnocchi de espinaca con salsa de tomate',
+            'Cazuela de garbanzos con vegetales',
+            'Omelette de champiñones y queso',
+            'Empanadas de humita y queso',
+            'Soufflé de zapallo con queso',
+            'Pizza de rúcula y mozzarella'
+        ],
+        'Vegano': [
+            'Bowl de quinoa con garbanzos y palta',
+            'Burger de champiñones con vegetales',
+            'Curry de lentejas con arroz basmati',
+            'Tacos de jackfruit adobado',
+            'Wok de tofu con vegetales y soja',
+            'Cazuela de porotos negros con arroz',
+            'Falafel con hummus y pan pita',
+            'Rollitos de vegetales con salsa agridulce',
+            'Pasta con pesto de albahaca sin queso',
+            'Bowl de remolacha con semillas y tahini'
+        ],
+        'Sin TACC (Celíacos)': [
+            'Arroz con leche de coco y pollo grillado',
+            'Tortilla española de papa y cebolla',
+            'Ensalada niçoise con atún y huevo duro',
+            'Pollo al horno con papas y romero',
+            'Milanesa de pollo rebozada en almendras',
+            'Sopa de vegetales con arroz',
+            'Revuelto de huevos con champiñones',
+            'Pulpo a la gallega con papas',
+            'Ceviche de langostinos con batata',
+            'Cazuela de pollo con zapallo'
+        ],
+        'Mixto (todas las opciones)': [
+            'Opción vegetariana: Tarta de espinaca y ricota',
+            'Opción vegana: Bowl de quinoa con garbanzos',
+            'Opción sin TACC: Pollo grillado con ensalada',
+            'Opción vegetariana: Tortilla de verduras',
+            'Opción vegana: Curry de lentejas con arroz',
+            'Opción sin TACC: Milanesa de pollo en almendras',
+            'Opción vegetariana: Gnocchi de espinaca',
+            'Opción vegana: Burger de champiñones',
+            'Opción sin TACC: Cazuela de pollo con arroz',
+            'Opción vegetariana: Pizza de rúcula y queso'
+        ]
+    };
+
+    const styleKey = (style in platos) ? style : 'Casero / Tradicional';
+    const dietKey = diet in vegetarianos ? diet : 'Vegetariano';
+    const platosStyle = platos[styleKey];
+    const dietOpts = vegetarianos[dietKey];
+
+    // Mezclar para que no se repitan
+    const usedP = [], usedG = [], usedPo = [], usedD = [];
+
+    return dias.map(dia => {
+        let p, g, po, d;
+        do { p = pick(platosStyle.principales); } while (usedP.includes(p));
+        do { g = pick(platosStyle.guarniciones); } while (usedG.includes(g));
+        do { po = pick(platosStyle.postres); } while (usedPo.includes(po));
+        do { d = pick(dietOpts); } while (usedD.includes(d) && usedD.length < dietOpts.length);
+        usedP.push(p); usedG.push(g); usedPo.push(po); usedD.push(d);
+        return { dia, principal: p, guarnicion: g, postre: po, dietOpcion: d };
+    });
+}
+
+function renderMenu(menus, diet) {
+    const dietLabel = diet === 'Mixto (todas las opciones)' ? 'Opción especial' : `Opción ${diet}`;
+    let html = '<div class="ai-text text-xs leading-relaxed">';
+
+    menus.forEach(m => {
+        html += `
+            <div class="mt-3 mb-1">
+                <span class="font-montserrat font-bold text-[#F57C00] text-sm tracking-wide">📅 ${m.dia}</span>
+            </div>
+            <span class="text-[#F57C00]">•</span> <strong>Menú principal:</strong> ${m.principal}<br>
+            <span class="text-[#F57C00]">•</span> <strong>${dietLabel}:</strong> ${m.dietOpcion}<br>
+            <span class="text-[#F57C00]">•</span> <strong>Guarnición:</strong> ${m.guarnicion}<br>
+            <span class="text-[#F57C00]">•</span> <strong>Postre:</strong> ${m.postre}<br>
+        `;
+    });
+
+    html += `
+        <div class="mt-5 pt-3 border-t border-orange-100">
+            <p class="text-[#F57C00] font-semibold text-xs">🍽️ Viands Sur — Organización. Cumplimiento. Escala.</p>
+            <p class="text-gray-400 text-xs mt-1">Menú de muestra generado para presentación. El menú real se planifica semanalmente con su equipo comercial.</p>
+        </div>
+    `;
+
+    html += '</div>';
+    return html;
 }
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
