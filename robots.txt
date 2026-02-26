@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /admin-viands.html
+
+Sitemap: https://viands-sur.web.app/sitemap.xml
