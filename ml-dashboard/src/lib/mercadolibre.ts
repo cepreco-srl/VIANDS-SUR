@@ -63,29 +63,39 @@ export async function getHighlights(
   categoryId: string,
   siteId = SITE_ID
 ): Promise<MLHighlightItem[]> {
-  interface HighlightResponse {
-    content: MLHighlightItem[];
+  // Primary: use Search API sorted by sold quantity — always returns full item data
+  interface SearchResponse {
+    results: MLHighlightItem[];
   }
 
-  // The highlights endpoint returns full item data in content[]
+  try {
+    const search = await mlFetch<SearchResponse>(
+      `/sites/${siteId}/search?category=${categoryId}&sort=sold_quantity_desc&limit=20`
+    );
+    if (search.results?.length) {
+      return search.results;
+    }
+  } catch {
+    // fall through to highlights fallback
+  }
+
+  // Fallback: highlights endpoint + fetch item details
+  interface HighlightResponse {
+    content: { id: string }[];
+  }
+
   const highlights = await mlFetch<HighlightResponse>(
     `/highlights/${siteId}/category/${categoryId}`
   );
 
   if (!highlights.content?.length) return [];
 
-  const items = highlights.content.slice(0, 20);
+  const ids = highlights.content
+    .slice(0, 20)
+    .map((i) => i.id)
+    .join(",");
 
-  // If items already have price data, return them directly
-  if (items[0]?.price != null) {
-    return items;
-  }
-
-  // Fallback: fetch full details by ID (some responses only include IDs)
-  const ids = items.map((i) => i.id).join(",");
-  const details = await mlFetch<unknown[]>(
-    `/items?ids=${ids}&attributes=id,title,price,currency_id,available_quantity,sold_quantity,condition,thumbnail,permalink,seller,shipping,attributes,category_id`
-  );
+  const details = await mlFetch<unknown[]>(`/items?ids=${ids}`);
 
   return details
     .map((entry) => {
