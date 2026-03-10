@@ -64,32 +64,33 @@ export async function getHighlights(
   siteId = SITE_ID
 ): Promise<MLHighlightItem[]> {
   interface HighlightResponse {
-    content: { id: string }[];
+    content: MLHighlightItem[];
   }
 
-  // Step 1: get highlighted item IDs
+  // The highlights endpoint returns full item data in content[]
   const highlights = await mlFetch<HighlightResponse>(
     `/highlights/${siteId}/category/${categoryId}`
   );
 
   if (!highlights.content?.length) return [];
 
-  // Step 2: fetch full item details (max 20 IDs per request)
-  const ids = highlights.content
-    .slice(0, 20)
-    .map((i) => i.id)
-    .join(",");
+  const items = highlights.content.slice(0, 20);
 
-  const items = await mlFetch<MLHighlightItem[]>(
+  // If items already have price data, return them directly
+  if (items[0]?.price != null) {
+    return items;
+  }
+
+  // Fallback: fetch full details by ID (some responses only include IDs)
+  const ids = items.map((i) => i.id).join(",");
+  const details = await mlFetch<unknown[]>(
     `/items?ids=${ids}&attributes=id,title,price,currency_id,available_quantity,sold_quantity,condition,thumbnail,permalink,seller,shipping,attributes,category_id`
   );
 
-  // The /items?ids= endpoint returns an array of {code, body} wrappers
-  // Handle both direct arrays and wrapped responses
-  const normalized = items.map((entry: unknown) => {
-    const e = entry as { code?: number; body?: MLHighlightItem } & MLHighlightItem;
-    return e.body ?? e;
-  });
-
-  return normalized.filter(Boolean) as MLHighlightItem[];
+  return details
+    .map((entry) => {
+      const e = entry as { code?: number; body?: MLHighlightItem } & MLHighlightItem;
+      return e.body ?? e;
+    })
+    .filter((item): item is MLHighlightItem => Boolean(item?.id));
 }
