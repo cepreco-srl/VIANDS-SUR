@@ -1,0 +1,139 @@
+{
+  "ultima_actualizacion": "2025-01-15",
+  "moneda": "ARS",
+  "nota": "Precios de lista consultados manualmente. Actualizar cada lunes.",
+  "proveedores": {
+    "fibertel": {
+      "nombre_display": "Fibertel / Personal",
+      "region": "AMBA",
+      "planes": [
+        {
+          "id": "fibertel_100",
+          "nombre": "100MB",
+          "velocidad_mbps": 100,
+          "precio_lista": 32000,
+          "precio_oferta_bienvenida": 22000,
+          "duracion_oferta_meses": 6,
+          "url_referencia": "https://www.fibertel.com.ar/planes"
+        },
+        {
+          "id": "fibertel_300",
+          "nombre": "300MB",
+          "velocidad_mbps": 300,
+          "precio_lista": 45000,
+          "precio_oferta_bienvenida": 31000,
+          "duracion_oferta_meses": 6,
+          "url_referencia": "https://www.fibertel.com.ar/planes"
+        },
+        {
+          "id": "fibertel_600",
+          "nombre": "600MB",
+          "velocidad_mbps": 600,
+          "precio_lista": 62000,
+          "precio_oferta_bienvenida": 44000,
+          "duracion_oferta_meses": 6,
+          "url_referencia": "https://www.fibertel.com.ar/planes"
+        }
+      ]
+    },
+    "telecentro": {
+      "nombre_display": "Telecentro",
+      "region": "AMBA",
+      "planes": [
+        {
+          "id": "telecentro_100",
+          "nombre": "100MB",
+          "velocidad_mbps": 100,
+          "precio_lista": 30000,
+          "precio_oferta_bienvenida": 20000,
+          "duracion_oferta_meses": 3,
+          "url_referencia": "https://www.telecentro.com.ar/internet"
+        },
+        {
+          "id": "telecentro_300",
+          "nombre": "300MB",
+          "velocidad_mbps": 300,
+          "precio_lista": 43000,
+          "precio_oferta_bienvenida": 29000,
+          "duracion_oferta_meses": 3,
+          "url_referencia": "https://www.telecentro.com.ar/internet"
+        },
+        {
+          "id": "telecentro_500",
+          "nombre": "500MB",
+          "velocidad_mbps": 500,
+          "precio_lista": 58000,
+          "precio_oferta_bienvenida": 40000,
+          "duracion_oferta_meses": 3,
+          "url_referencia": "https://www.telecentro.com.ar/internet"
+        }
+      ]
+    },
+    "claro": {
+      "nombre_display": "Claro",
+      "region": "Nacional",
+      "planes": [
+        {
+          "id": "claro_100",
+          "nombre": "100MB",
+          "velocidad_mbps": 100,
+          "precio_lista": 34000,
+          "precio_oferta_bienvenida": 23500,
+          "duracion_oferta_meses": 6,
+          "url_referencia": "https://www.claro.com.ar/personas/internet-hogar"
+        },
+        {
+          "id": "claro_300",
+          "nombre": "300MB",
+          "velocidad_mbps": 300,
+          "precio_lista": 48000,
+          "precio_oferta_bienvenida": 33000,
+          "duracion_oferta_meses": 6,
+          "url_referencia": "https://www.claro.com.ar/personas/internet-hogar"
+        },
+        {
+          "id": "claro_600",
+          "nombre": "600MB",
+          "velocidad_mbps": 600,
+          "precio_lista": 65000,
+          "precio_oferta_bienvenida": 46000,
+          "duracion_oferta_meses": 6,
+          "url_referencia": "https://www.claro.com.ar/personas/internet-hogar"
+        }
+      ]
+    },
+    "movistar": {
+      "nombre_display": "Movistar",
+      "region": "Nacional",
+      "planes": [
+        {
+          "id": "movistar_50",
+          "nombre": "50MB",
+          "velocidad_mbps": 50,
+          "precio_lista": 26000,
+          "precio_oferta_bienvenida": 18000,
+          "duracion_oferta_meses": 3,
+          "url_referencia": "https://www.movistar.com.ar/internet-hogar"
+        },
+        {
+          "id": "movistar_100",
+          "nombre": "100MB",
+          "velocidad_mbps": 100,
+          "precio_lista": 33000,
+          "precio_oferta_bienvenida": 22000,
+          "duracion_oferta_meses": 3,
+          "url_referencia": "https://www.movistar.com.ar/internet-hogar"
+        },
+        {
+          "id": "movistar_300",
+          "nombre": "300MB",
+          "velocidad_mbps": 300,
+          "precio_lista": 46000,
+          "precio_oferta_bienvenida": 32000,
+          "duracion_oferta_meses": 3,
+          "url_referencia": "https://www.movistar.com.ar/internet-hogar"
+        }
+      ]
+    }
+  }
+}
