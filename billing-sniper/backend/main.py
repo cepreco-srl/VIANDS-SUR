@@ -16,6 +16,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from routers.extract import router as extract_router
 from routers.precios import router as precios_router
+from routers.script import router as script_router
+from routers.analizar import router as analizar_router
 
 # ── Logging básico ────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -45,6 +47,8 @@ app.add_middleware(
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(extract_router)
 app.include_router(precios_router)
+app.include_router(script_router)
+app.include_router(analizar_router)
 
 
 # ── Health check ──────────────────────────────────────────────────────────────
